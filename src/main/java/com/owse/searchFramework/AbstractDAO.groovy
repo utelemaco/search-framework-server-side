@@ -16,7 +16,6 @@ abstract class AbstractDAO<D,E> {
 	public AbstractDAO(EntityManager entityManager, Class entityClass) {
 		super();
 		this.entityManager = entityManager
-        this.entityMapper = entityMapper
         this.entityClass = entityClass
         configureHQLFields()
 	}
