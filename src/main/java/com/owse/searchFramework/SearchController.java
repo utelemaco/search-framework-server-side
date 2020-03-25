@@ -36,6 +36,13 @@ public class SearchController {
         return getDAO(beanName).getSearchConfig();
     }
 
+    /**
+     */
+    @GetMapping("/search/test")
+    public String getSearchConfig() {
+        return "OK";
+    }
+
     private AbstractDAO<?, ?> getDAO(String beanName) {
         return (AbstractDAO<?,?>) beanFactory.getBean(beanName);
     }
