@@ -34,6 +34,8 @@ abstract class AbstractDAO<D,E> {
 
     abstract Logger getLog();
 
+	abstract Object getEntityMapper();
+
     SearchConfig getSearchConfig() {
         SearchConfig searchConfig = new SearchConfig()
         searchConfig.filtersDef = getFiltersDef()
@@ -59,7 +61,9 @@ abstract class AbstractDAO<D,E> {
 			.setMaxResults(searchRequest.pageSize)
 			.setFirstResult((searchRequest.pageNumber - 1) * searchRequest.pageSize)
 		queryList = setParameters(queryList, searchRequest)
-		searchResult.list = queryList.resultList
+		searchResult.list = queryList.resultList.collect { entity ->
+			entityMapper.toDto(entity)
+		}
         getLog().debug("Searching done! Found: Total: ${searchResult.total}. In this page: ${searchResult.list.size()}")
 		searchResult
 	}
