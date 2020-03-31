@@ -27,11 +27,27 @@ public class SearchController {
         log.debug("REST request to search using bean ", beanName);
         return getDAO(beanName).search(searchRequest);
     }
+    
+    /**
+     */
+    @PostMapping("/search/{param}/{beanName}")
+    public PageableSearchResult<?> search(@PathVariable Long param, @PathVariable String beanName, @RequestBody PageableSearchRequest searchRequest) {
+        log.debug("REST request to search using bean ", beanName);
+        return getDAO(beanName).search(searchRequest, param);
+    }
 
     /**
      */
     @GetMapping("/search/{beanName}/search-config")
     public SearchConfig getSearchConfig(@PathVariable String beanName) {
+        log.debug("REST request to get SearchConfig using bean ", beanName);
+        return getDAO(beanName).getSearchConfig();
+    }
+    
+    /**
+     */
+    @GetMapping("/search/{param}/{beanName}/search-config")
+    public SearchConfig getSearchConfig(@PathVariable Long param, @PathVariable String beanName) {
         log.debug("REST request to get SearchConfig using bean ", beanName);
         return getDAO(beanName).getSearchConfig();
     }

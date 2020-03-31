@@ -1,6 +1,7 @@
 package com.owse.searchFramework
 
 
+import org.apache.commons.lang3.math.NumberUtils
 import org.slf4j.Logger
 
 import javax.persistence.EntityManager
@@ -21,6 +22,8 @@ abstract class AbstractDAO<D,E> {
 	}
 
     abstract String getName();
+    
+    abstract List<String> getParamsId();
 
     abstract List<FilterDef> getFiltersDef()
 
@@ -67,7 +70,30 @@ abstract class AbstractDAO<D,E> {
         getLog().debug("Searching done! Found: Total: ${searchResult.total}. In this page: ${searchResult.list.size()}")
 		searchResult
 	}
+    
+	PageableSearchResult<D> search(PageableSearchRequest searchRequest, Object... params) {
+		PageableSearchResult<?> searchResult = new PageableSearchResult()
+		searchResult.pageSize = searchRequest.pageSize
+		searchResult.pageNumber = searchRequest.pageNumber
+		searchResult.filters = searchRequest.filters
+		searchResult.sortedBy = searchRequest.sortedBy
+		
+		addParams(searchResult, params)
+		
+        Query queryCount = entityManager.createQuery(buildCountHQL(searchRequest))
+		queryCount = setParameters(queryCount, searchRequest)
+		searchResult.total = queryCount.singleResult
 
+        Query queryList = entityManager.createQuery(buildListHQL(searchRequest), entityClass)
+			.setMaxResults(searchRequest.pageSize)
+			.setFirstResult((searchRequest.pageNumber - 1) * searchRequest.pageSize)
+		queryList = setParameters(queryList, searchRequest)
+		searchResult.list = queryList.resultList.collect { entity ->
+			entityMapper.toDto(entity)
+		}
+        getLog().debug("Searching done! Found: Total: ${searchResult.total}. In this page: ${searchResult.list.size()}")
+		searchResult
+	}
 
 	public String buildCountHQL(PageableSearchRequest searchRequest) {
 		String hql = "select count(entity) from ${entityClass.name} entity"
@@ -93,6 +119,17 @@ abstract class AbstractDAO<D,E> {
 
 		hql
 	}
+    
+    def addParams(PageableSearchResult<?> searchResult, Object... params) {
+    	params.eachWithIndex { param, index ->
+			if (NumberUtils.isCreatable(param as String)) {
+				searchResult.filters << new LongFilter(id: paramsId[index], value: param) 
+			} else {
+				searchResult.filters << new StringFilter(id: paramsId[index], value: param) 
+			}
+    	}
+    }
+   
 
 	def setParameters(Query query, PageableSearchRequest searchRequest){
 		searchRequest.activeFilters.each { filter ->

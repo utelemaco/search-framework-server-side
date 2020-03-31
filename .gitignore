@@ -1,3 +1,5 @@
 target
 .idea
 search-framework-server-side.iml
+/.classpath
+/.project
